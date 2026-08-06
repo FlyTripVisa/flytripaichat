@@ -17,17 +17,21 @@ const MODEL_ID = "@cf/meta/llama-3.1-8b-instruct-fp8";
 const SYSTEM_PROMPT =
 	"You are a helpful, friendly assistant. Provide concise and accurate responses.";
 
+export interface Env {
+  AI: Ai;
+}
 export default {
-	/**
-	 * Main request handler for the Worker
-	 */
-	async fetch(
-		request: Request,
-		env: Env,
-		ctx: ExecutionContext,
-	): Promise<Response> {
-		const url = new URL(request.url);
-
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const response = await env.AI.run("workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+      prompt: "What is Cloudflare?",
+    }, {
+      gateway: {
+        id: "my-ai-admin",
+      },
+    });
+    return Response.json(response);
+  },
+};
 		// Handle static assets (frontend)
 		if (url.pathname === "/" || !url.pathname.startsWith("/api/")) {
 			return env.ASSETS.fetch(request);
@@ -76,8 +80,8 @@ async function handleChatRequest(
 		const stream = await env.AI.run<typeof MODEL_ID>(MODEL_ID, inputs, {
 			// Uncomment to use AI Gateway
 			// gateway: {
-			//   id: "YOUR_GATEWAY_ID", // Replace with your AI Gateway ID
-			//   skipCache: false,      // Set to true to bypass cache
+			//   id: "my-ai-admin", // Replace with your AI Gateway ID
+			//   skipCache: true,      // Set to true to bypass cache
 			//   cacheTtl: 3600,        // Cache time-to-live in seconds
 			// },
 		});
